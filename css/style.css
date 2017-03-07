@@ -1,0 +1,164 @@
+body{
+    background-color: black;
+    width: calc(100% - 100px);
+    height: calc(100% - 100px);
+    color: #ffffff;
+
+}
+
+
+
+h1{
+    color:white;
+}
+
+
+.dimmed {
+    color: #666;
+}
+
+.normal {
+    color: #999;
+}
+
+.bright {
+    color: #fff;
+}
+
+.xsmall {
+    font-size: 15px;
+    line-height: 20px;
+}
+
+.small {
+    font-size: 20px;
+    line-height: 25px;
+}
+
+.medium {
+    font-size: 30px;
+    line-height: 35px;
+}
+
+.large {
+    font-size: 65px;
+    line-height: 65px;
+}
+
+.xlarge {
+    font-size: 75px;
+    line-height: 75px;
+    letter-spacing: -3px;
+}
+
+.thin {
+    font-family: Roboto, sans-serif;
+    font-weight: 100;
+}
+
+.light {
+    font-weight: 300;
+}
+
+.regular {
+    font-weight: 400;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.align-left {
+    text-align: left;
+}
+
+
+.region{
+    position: absolute;
+}
+
+.region.right{
+    right:0;
+    text-align:right;
+}
+
+.region.top{
+    top:0;
+}
+
+.region.top .container{
+    margin-bottom:20px;
+}
+
+.region.top.center,
+.region.bottom.center
+{
+    left:50%;
+}
+
+.region.top.left,
+.region.top.center,
+.region.top.right {
+    top:100%;
+}
+
+.region.bottom.left,
+.region.bottom.center,
+.region.bottom.right {
+    bottom:100%;
+}
+
+.region.bar{
+    width:100%;
+    text-align:center;
+}
+
+.region third,
+.region.middle.center {
+    width: 100%;
+    text-align: center;
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.region.upper.third {
+    top: 33%;
+}
+
+.region.middle.center {
+    top: 50%;
+}
+
+.region.lower.third {
+    top: 66%;
+}
+
+.region.bottom{
+    bottom:0;
+}
+
+.region.bottom .container{
+    margin-top:20px;
+}
+
+.region.left{
+    text-align:left;
+}
+
+
+
+
+
+
+
+
+/*Container*/
+
+

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>smart_mirror</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script type="text/javascript" src="clock.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+        </div>
+    </div>
+
+    <div class="region top bar">
+        <div class="region top left">
+            <div id="clock" class="container">
+                tl
+            </div>
+        </div>
+        <div class="region top center">
+            <div class="container">
+                tc
+            </div>
+        </div>
+        <div class="region top right">
+            <div class="container">
+                tr
+            </div>
+        </div>
+    </div>
+
+    <div class="region upper third"><div class="container"></div></div>
+        <div class="region middle center">
+            <div class="container">
+                <button hidden id="login">Login</button>
+                <button hidden id="logout" >Logout</button>
+                <button id="startRecording" >Start recording</button>
+                <button id="stopRecording" >Stop recording</button>
+                <button hidden id="stopAudio" >Stop audio</button>
+                <button hidden id="pauseAudio" >Pause audio</button>
+                <button hidden id="playAudio" >Play/Resume audio</button>
+                <button hidden id="replayAudio" >Replay audio</button>
+
+                <ul hidden id="log"></ul>
+                <ul hidden id="audioLog"></ul>
+            </div>
+        </div>
+    <div class="region lower third"><div class="container"></div></div>
+
+
+    <div class="region bottom bar">
+        <div class="region bottom left">
+            <div class="container">
+                <!--<h1>NEWS</h1>
+                <script type="text/javascript" src="https://feed.mikle.com/js/fw-loader.js" data-fw-param="13547/"></script>-->
+            </div>
+        </div>
+        <div class="region bottom center">
+            <div class="container">
+                bc
+            </div>
+        </div>
+        <div class="region bottom right">
+            <div class="container">
+                br
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script src="index.bundle.js"></script>
+
+
+    <script type="text/javascript">window.onload = start_date_time('clock');</script>
+    <script type="text/javascript">window.onload = date_time('dateWrapper','timeWrapper');</script>
+    <!--<script>require('./clock.js')</script>-->
+
+
+    <!--<h1>Test!</h1>
+    <script>require('./index.js')</script>-->
+</body>
+</html>
