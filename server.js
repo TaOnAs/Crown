@@ -2,14 +2,12 @@ const https = require('https');
 const fs = require('fs');
 const request = require('request');
 
+
 const options = {
-  // Private Key
   key: fs.readFileSync('./ssl/server.key'),
 
-  // SSL Certficate
   cert: fs.readFileSync('./ssl/server.crt'),
 
-  // Make sure an error is not emitted on connection when the server certificate verification against the list of supplied CAs fails.
   rejectUnauthorized: false
 };
 
@@ -20,13 +18,14 @@ const qs = require('qs');
 const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const app = express();
+const weather = require('./weather.js');
 const port = 9745;
 
 const server = https.createServer(options, app).listen(port, () => {
   console.log(`Express server listening on port ${port}`);
 });
 
-app.use(bodyParser.urlencoded({ extended: true}))
+app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -42,7 +41,7 @@ app.post('/audio', upload.single('data'), (req, res) => {
 
 app.get('/parse-m3u', (req, res) => {
   const m3uUrl = req.query.url;
-  console.log(m3uUrl)
+  console.log(m3uUrl);
 
   if (!m3uUrl) {
     return res.json([]);
@@ -51,11 +50,14 @@ app.get('/parse-m3u', (req, res) => {
   const urls = [];
 
   request(m3uUrl, function(error, response, bodyResponse) {
-    console.log(bodyResponse, m3uUrl)
+    console.log(bodyResponse, m3uUrl);
     if (bodyResponse) {
       urls.push(bodyResponse);
     }
 
     res.json(urls);
   });
+
+
+
 });
