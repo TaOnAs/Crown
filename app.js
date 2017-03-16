@@ -2,36 +2,31 @@
  * Created by Mark on 23/02/2017.
  */
 
+var fs = require("fs");
+var Server = require(__dirname + "/server.js");
+var Weather = require(__dirname + "/weather.js");
+// var Alexa = require(__dirname + "/alexa.js");
+var path = require("path");
 
 
-// var loadModules = function (modules) {
-//     for(var i in modules)
-//     {
-//         loadModule(modules[i]);
-//     }
-// }
-//
-// var loadModule = function (module) {
-//
-// }
-//
-//
-// this.start = function(callback) {
-//
-//     loadConfig(function(c){
-//         cfg = c;
-//
-//         var modules = [];
-//
-//         for(var i in cfg.modules)
-//         {
-//             var module = cfg.modules[i];
-//             if(modules.indexOf(module.module) === -1 && !module.disabled)
-//             {
-//                 modules.push(module.module)
-//             }
-//         }
-//
-//         loadModules(modules);
-//     })
-// }
+
+var App = function()
+{
+
+    this.start = function(callback){
+
+        var server = new Server( function(){
+            console.log("Server Started")
+        });
+
+        // var alexa = new Alexa( function(){
+        //     console.log("Alexa Started")
+        // });
+
+        var weather = new Weather( function(){
+            console.log("Weather Started")
+        });
+    }
+};
+
+module.exports = new App();

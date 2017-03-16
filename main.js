@@ -1,24 +1,19 @@
 /**
  * Created by Mark on 15/02/2017.
  */
-
-
-
 const electron = require('electron');
+const core = require(__dirname + "/app.js");
+
+// const Server = require(__dirname + "/server.js");
+// const Clock = require(__dirname + "/clock.js");
+
+const application = electron.app;
+const BrowserWindow = electron.BrowserWindow;
 
 
+let mainWindow;
 
-const {app, BrowserWindow} = electron;
-const path = require('path');
-const url = require('url');
-const clock = require(__dirname + "/clock.js");
-const server = require(__dirname + "/server.js");
-
-
-let window;
-
-function createBrowserWindow()
-{
+function createWindow() {
     var options = {
         width:800,
         height:600,
@@ -27,29 +22,35 @@ function createBrowserWindow()
         autoHideMenuBar:true
     }
 
-    var electronOptions = Object.assign({}, options)
-
-    window = new BrowserWindow(electronOptions)
-    window.loadURL('file:' + __dirname +'/index.html')
-    window.webContents.openDevTools()
+    var electronOptions = Object.assign({}, options);
 
 
+    mainWindow = new BrowserWindow(electronOptions);
+    mainWindow.loadURL("https://localhost:9745/");
+    console.log(process.versions.electron);
+    mainWindow.webContents.openDevTools()
+
+    mainWindow.on("closed", function() {
+        mainWindow = null;
+    });
 }
 
+application.commandLine.appendSwitch('client-certificate',
+    __dirname + 'ssl/server.crt');
 
+application.on("ready", function() {
+    console.log("Launching application.");
+    createWindow();
+});
 
-
-app.on('ready', () => {
-
-    createBrowserWindow();
-
-    // let window = new BrowserWindow({width:800, height:600})
-    // window.loadURL('file:' + __dirname +'/index.html')
-    // window.webContents.openDevTools()
-})
-
+application.on("mainWindow-all-closed", function() {
+    createWindow();
+});
 
 // exports.openWindow = () => {
-//     let window = new BrowserWindow({width:400, height:200})
-//     window.loadURL('file://' + __dirname + '/bear.html')
+//     let mainWindow = new BrowserWindow({width:400, height:200})
+//     mainWindow.loadURL('file://' + __dirname + '/bear.html')
 // }
+
+core.start( function () {
+});

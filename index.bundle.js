@@ -6,8 +6,8 @@ var player = AVS.Player;
 
 var avs = new AVS({
     debug : true,
-    clientId : 'amzn1.application-oa2-client.8b7a0bd3cb7941049863d7d871d74ece',
-    clientSecret : 'f7b8731a1714665986eea3c773566013064d23532cda38b57994c03256c5b578',
+    clientId : 'amzn1.application-oa2-client.6ba6c9e926af4305a2270ac8df8ca9b6',
+    clientSecret : '17416ce25e7f14cd9264887c506e7d2049f59e7da3de619a5571ab2409bfd4cd',
     deviceId : 'my_device',
     deviceSerialNumber : 123123,
     redirectUri : 'https://localhost:9745/authresponse'
@@ -19,6 +19,8 @@ avs.on(AVS.EventTypes.TOKEN_SET, function () {
   logoutBtn.disabled = false;
   startRecording.disabled = false;
   stopRecording.disabled = true;
+  console.log("TOKEN SET");
+
 });
 
 avs.on(AVS.EventTypes.RECORD_START, function () {
@@ -40,6 +42,7 @@ avs.on(AVS.EventTypes.LOGOUT, function () {
 
 avs.on(AVS.EventTypes.TOKEN_INVALID, function () {
   avs.logout().then(login);
+  console.log("TOKEN INVALID");
 });
 
 avs.on(AVS.EventTypes.LOG, log);
@@ -121,7 +124,7 @@ var pauseAudio = document.getElementById('pauseAudio');
 var playAudio = document.getElementById('playAudio');
 var replayAudio = document.getElementById('replayAudio');
 
-/*
+
 // If using client secret
 avs.getCodeFromUrl()
  .then(code => avs.getTokenFromCode(code))
@@ -132,7 +135,7 @@ avs.getCodeFromUrl()
 .catch(() => {
 
 });
-*/
+
 
 avs.getTokenFromUrl().then(function () {
   return avs.getToken();
@@ -156,12 +159,12 @@ function login(event) {
     return avs.requestMic();
   }).catch(function () {});
 
-  /*
+
   // If using client secret
   avs.login({responseType: 'code'})
   .then(() => avs.requestMic())
   .catch(() => {});
-  */
+
 }
 
 logoutBtn.addEventListener('click', logout);
