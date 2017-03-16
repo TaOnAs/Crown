@@ -23,7 +23,7 @@
                 tc
             </div>
         </div>
-        <div class="region top right">
+        <div id="weather" class="region top right">
             <div class="container">
                 tr
             </div>
@@ -33,7 +33,7 @@
     <div class="region upper third"><div class="container"></div></div>
         <div class="region middle center">
             <div class="container">
-                <button hidden id="login">Login</button>
+                <button  id="login">Login</button>
                 <button hidden id="logout" >Logout</button>
                 <button id="startRecording" >Start recording</button>
                 <button id="stopRecording" >Stop recording</button>
@@ -72,11 +72,15 @@
 
 
     <script src="index.bundle.js"></script>
-
+    <!--<script>require('./weather.js')</script>&ndash;&gt;-->
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="server.js"></script>
+    <script type="text/javascript" src="weather.js"></script>
 
     <script type="text/javascript">window.onload = start_date_time('clock');</script>
     <script type="text/javascript">window.onload = date_time('dateWrapper','timeWrapper');</script>
-    <!--<script>require('./clock.js')</script>-->
+    <!--<script type="text/javascript">window.onload = start_weather();</script>-->
+
 
 
     <!--<h1>Test!</h1>
