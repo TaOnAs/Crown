@@ -10,10 +10,11 @@ var path = require("path");
 
 
 
-var App = function()
-{
 
-    this.start = function(callback){
+
+
+
+this.start = function(callback){
 
         var server = new Server( function(){
             console.log("Server Started")
@@ -23,10 +24,10 @@ var App = function()
         //     console.log("Alexa Started")
         // });
 
-        var weather = new Weather( function(){
-            console.log("Weather Started")
-        });
-    }
-};
+        // var weather = new Weather( function(){
+        //     console.log("Weather Started")
+        // });
+}
+
 
 module.exports = new App();

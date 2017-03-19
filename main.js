@@ -2,9 +2,9 @@
  * Created by Mark on 15/02/2017.
  */
 const electron = require('electron');
-const core = require(__dirname + "/app.js");
+// const core = require(__dirname + "app.js");
 
-// const Server = require(__dirname + "/server.js");
+const Server = require(__dirname + "/server.js");
 // const Clock = require(__dirname + "/clock.js");
 
 const application = electron.app;
@@ -27,7 +27,6 @@ function createWindow() {
 
     mainWindow = new BrowserWindow(electronOptions);
     mainWindow.loadURL("https://localhost:9745/");
-    console.log(process.versions.electron);
     mainWindow.webContents.openDevTools()
 
     mainWindow.on("closed", function() {
@@ -52,5 +51,5 @@ application.on("mainWindow-all-closed", function() {
 //     mainWindow.loadURL('file://' + __dirname + '/bear.html')
 // }
 
-core.start( function () {
-});
+// core.start( function () {
+// });
