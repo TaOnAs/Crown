@@ -26,6 +26,7 @@ function createWindow() {
 
 
     mainWindow = new BrowserWindow(electronOptions);
+    // mainWindow.loadURL('file://' + __dirname + '/index.html');
     mainWindow.loadURL("https://localhost:9745/");
     mainWindow.webContents.openDevTools()
 
@@ -44,6 +45,13 @@ application.on("ready", function() {
 
 application.on("mainWindow-all-closed", function() {
     createWindow();
+});
+
+application.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    // Verification logic.
+    event.preventDefault()
+    callback(true)
+
 });
 
 // exports.openWindow = () => {

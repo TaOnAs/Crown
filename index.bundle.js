@@ -14,6 +14,147 @@ var avs = new AVS({
 });
 window.avs = avs;
 
+var self = this;
+this.listening = false;
+this.timeout = null;
+
+
+var socket = io();
+
+    socket.on('alexa', function(data) {
+        console.log(data.message);
+        avs.startRecording();
+        // addMessage(data.message.temp);
+    });
+
+    socket.on('silence', function(data) {
+        console.log(data.message);
+        avs.stopRecording().then(function (dataView) {
+            avs.player.emptyQueue().then(function () {
+                return avs.audioToBlob(dataView);
+            }).then(function (blob) {
+                return logAudioBlob(blob, 'VOICE');
+                //}).then(function () {
+                //return avs.player.enqueue(dataView);
+                //}).then(function () {
+                //return avs.player.play();
+            }).catch(function (error) {
+                console.error(error);
+            });
+
+            var ab = false;
+            //sendBlob(blob);
+            avs.sendAudio(dataView).then(function (_ref) {
+                var xhr = _ref.xhr;
+                var response = _ref.response;
+
+
+                var promises = [];
+                var audioMap = {};
+                var directives = null;
+
+                if (response.multipart.length) {
+                    (function () {
+                        var findAudioFromContentId = function findAudioFromContentId(contentId) {
+                            contentId = contentId.replace('cid:', '');
+                            for (var key in audioMap) {
+                                if (key.indexOf(contentId) > -1) {
+                                    return audioMap[key];
+                                }
+                            }
+                        };
+
+                        response.multipart.forEach(function (multipart) {
+                            var body = multipart.body;
+                            if (multipart.headers && multipart.headers['Content-Type'] === 'application/json') {
+                                try {
+                                    body = JSON.parse(body);
+                                } catch (error) {
+                                    console.error(error);
+                                }
+
+                                if (body && body.messageBody && body.messageBody.directives) {
+                                    directives = body.messageBody.directives;
+                                }
+                            } else if (multipart.headers['Content-Type'] === 'audio/mpeg') {
+                                var start = multipart.meta.body.byteOffset.start;
+                                var end = multipart.meta.body.byteOffset.end;
+
+                                /**
+                                 * Not sure if bug in buffer module or in http message parser
+                                 * because it's joining arraybuffers so I have to this to
+                                 * seperate them out.
+                                 */
+                                var slicedBody = xhr.response.slice(start, end);
+
+                                //promises.push(avs.player.enqueue(slicedBody));
+                                audioMap[multipart.headers['Content-ID']] = slicedBody;
+                            }
+                        });
+
+                        directives.forEach(function (directive) {
+                            if (directive.namespace === 'SpeechSynthesizer') {
+                                if (directive.name === 'speak') {
+                                    var contentId = directive.payload.audioContent;
+                                    var audio = findAudioFromContentId(contentId);
+                                    if (audio) {
+                                        avs.audioToBlob(audio).then(function (blob) {
+                                            return logAudioBlob(blob, 'RESPONSE');
+                                        });
+                                        promises.push(avs.player.enqueue(audio));
+                                    }
+                                }
+                            } else if (directive.namespace === 'AudioPlayer') {
+                                if (directive.name === 'play') {
+                                    var streams = directive.payload.audioItem.streams;
+                                    streams.forEach(function (stream) {
+                                        var streamUrl = stream.streamUrl;
+
+                                        var audio = findAudioFromContentId(streamUrl);
+                                        if (audio) {
+                                            avs.audioToBlob(audio).then(function (blob) {
+                                                return logAudioBlob(blob, 'RESPONSE');
+                                            });
+                                            promises.push(avs.player.enqueue(audio));
+                                        } else if (streamUrl.indexOf('http') > -1) {
+                                            var _xhr = new XMLHttpRequest();
+                                            var url = '/parse-m3u?url=' + streamUrl.replace(/!.*$/, '');
+                                            _xhr.open('GET', url, true);
+                                            _xhr.responseType = 'json';
+                                            _xhr.onload = function (event) {
+                                                var urls = event.currentTarget.response;
+
+                                                urls.forEach(function (url) {
+                                                    avs.player.enqueue(url);
+                                                });
+                                            };
+                                            _xhr.send();
+                                        }
+                                    });
+                                } else if (directive.namespace === 'SpeechRecognizer') {
+                                    if (directive.name === 'listen') {
+                                        var timeout = directive.payload.timeoutIntervalInMillis;
+                                        // enable mic
+                                    }
+                                }
+                            }
+                        });
+
+                        if (promises.length) {
+                            Promise.all(promises).then(function () {
+                                avs.player.playQueue();
+                            });
+                        }
+                    })();
+                }
+            }).catch(function (error) {
+                console.error(error);
+            });
+        });
+        // addMessage(data.message.temp);
+    });
+
+
 avs.on(AVS.EventTypes.TOKEN_SET, function () {
   loginBtn.disabled = true;
   logoutBtn.disabled = false;

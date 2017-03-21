@@ -35,7 +35,6 @@ weather.setCulture("ie");
 weather.setForecastType("daily");
 
 const currentWeather = function() {
-    console.log("startedwather")
     try{
         weather.now("DublinCity", function (err, aData) {
             io.emit('weather', { message: aData.getDegreeTemp()});
@@ -48,6 +47,86 @@ const currentWeather = function() {
 }
 
 setInterval(currentWeather, 1000);
+
+
+//WAKE WORD
+const record = require('node-record-lpcm16');
+const Detector = require('./node_modules/snowboy').Detector;
+const Models = require('./node_modules/snowboy').Models;
+const models = new Models();
+
+var self = this;
+this.listening = false;
+this.timeout = null;
+
+this._clearTimeout = function(){
+    if(self.timeout){
+        clearTimeout(self.timeout);
+    }
+};
+
+this._onVoiceStop = function(){
+    if(self.listening){
+        self.listening = false;
+        self._clearTimeout();
+        io.emit('silence', { message: "silence"});
+    }
+}
+
+models.add({
+    file: 'resources/alexa.umdl',
+    sensitivity: '1',
+    hotwords : 'mirror'
+});
+
+const detector = new Detector({
+    resource: "resources/common.res",
+    models: models,
+    audioGain: 0.0
+});
+
+detector.on('silence', function () {
+    console.log(self.listening);
+    if(self.listening)
+    {
+        self.timeout = setTimeout(function(){
+            console.log("timeout");
+            self._onVoiceStop();
+        }, 3000);
+    }
+    console.log('silence');
+});
+
+detector.on('sound', function () {
+    if(self.listening)
+    {
+        self._clearTimeout();
+    }
+    console.log('sound');
+});
+
+detector.on('error', function () {
+    console.log('error');
+});
+
+detector.on('hotword', function (index, hotword) {
+    console.log('hotword', index, hotword);
+    self.listening = true;
+    console.log(self.listening);
+    io.emit('alexa', { message: "alexa"});
+
+});
+
+const mic = record.start({
+    threshold: 0,
+    verbose: true
+});
+
+mic.pipe(detector);
+
+
+
+
 
 
 
@@ -93,6 +172,7 @@ io.on('connection', function(socket) {
 
     socket.on('i am client', console.log);
 });
+
 
 
 

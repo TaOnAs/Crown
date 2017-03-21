@@ -20,5 +20,10 @@
     "request": "^2.72.0",
     "socket.io": "^1.7.3",
     "Openweather-Node": "latest"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^1.5.7",
+    "node-record-lpcm16": "^0.2.0",
+    "snowboy": "^1.1.0"
   }
 }
