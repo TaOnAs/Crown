@@ -29,24 +29,43 @@ const io = require('socket.io')(server);
 
 
 //WEATHER
-const weather = require("Openweather-Node");
-weather.setAPPID("fc95ca7a3fa739623373a2c2a9fe1198");
-weather.setCulture("ie");
-weather.setForecastType("daily");
 
-const currentWeather = function() {
-    try{
-        weather.now("DublinCity", function (err, aData) {
-            io.emit('weather', { message: aData.getDegreeTemp()});
+//OPEN WEATHER
+this.openWeather = true;
+
+if(this.openWeather)
+{
+    const weather = require("Openweather-Node");
+    weather.setAPPID("fc95ca7a3fa739623373a2c2a9fe1198");
+    weather.setCulture("ie");
+    weather.setForecastType("daily");
+
+    const currentWeather = function() {
+        try{
+            weather.now("DublinCity", function (err, aData) {
+                io.emit('weather', { message: aData.getDegreeTemp()});
+            });
+        }
+        catch(err) {
+            console.log(err.message);
+            return 1;
+        }
+    }
+    setInterval(currentWeather, 1000);
+}
+else
+{
+    const accuweather = require('node-accuweather')()("ANQd9hWkrIvl0DXh8Xl2fIGQvh5unJIF");
+
+    accuweather.getCurrentConditions("Dublin")
+        .then(function(result) {
+            console.log(result);
         });
-    }
-    catch(err) {
-        console.log(err.message);
-        return 1;
-    }
 }
 
-setInterval(currentWeather, 1000);
+
+
+//ACCUWEATHER
 
 
 //WAKE WORD
@@ -86,15 +105,14 @@ const detector = new Detector({
 });
 
 detector.on('silence', function () {
-    console.log(self.listening);
     if(self.listening)
     {
         self.timeout = setTimeout(function(){
-            console.log("timeout");
+            // console.log("timeout");
             self._onVoiceStop();
         }, 3000);
     }
-    console.log('silence');
+    // console.log('silence');
 });
 
 detector.on('sound', function () {
@@ -102,7 +120,7 @@ detector.on('sound', function () {
     {
         self._clearTimeout();
     }
-    console.log('sound');
+    // console.log('sound');
 });
 
 detector.on('error', function () {
@@ -112,17 +130,59 @@ detector.on('error', function () {
 detector.on('hotword', function (index, hotword) {
     console.log('hotword', index, hotword);
     self.listening = true;
-    console.log(self.listening);
     io.emit('alexa', { message: "alexa"});
 
 });
 
 const mic = record.start({
     threshold: 0,
-    verbose: true
+    verbose: false
 });
 
 mic.pipe(detector);
+
+
+//Philips Hue
+var Hue = require('philips-hue');
+//var Hue = require('../');
+
+// var hue = new Hue;
+// hue.devicetype = 'my-hue-app';
+//
+// hue.getBridges()
+//     .then(function(bridges){
+//         console.log(bridges);
+//         var bridge = bridges[0];
+//         console.log("bridge: "+bridge);
+//         return hue.auth(bridge);
+//     })
+//     .then(function(username){
+//         console.log("username: "+username);
+//         hue.light(1).on();
+//     })
+//     .catch(function(err){
+//         console.error(err.stack || err);
+//     });
+
+var hue = new Hue;
+hue.bridge = "192.168.1.105";
+hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
+// hue.light(1).off();
+
+
+hue.getLights()
+    .then(function(lights){
+        // console.log(lights);
+        console.log(Object.keys(lights) + " lights found!");
+    })
+    .catch(function(err){
+        console.error(err.stack || err);
+    });
+
+
+
+
+
 
 
 
