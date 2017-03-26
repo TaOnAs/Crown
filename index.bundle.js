@@ -10,7 +10,9 @@ var avs = new AVS({
     clientSecret : '17416ce25e7f14cd9264887c506e7d2049f59e7da3de619a5571ab2409bfd4cd',
     deviceId : 'my_device',
     deviceSerialNumber : 123123,
-    redirectUri : 'https://localhost:9745/authresponse'
+    redirectUri : 'https://localhost:9745/authresponse',
+    token : localStorage.getItem('avsToken'),
+    refreshToken : localStorage.getItem('avsRefreshToken')
 });
 window.avs = avs;
 

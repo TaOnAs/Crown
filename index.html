@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <title>smart_mirror</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" type="text/css" href="css/animate.css">
+    <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
+
+
     <script type="text/javascript" src="clock.js"></script>
 
     <script src="socket.io/socket.io.js"></script>
     <script src = "client.js"></script>
 </head>
 <body>
+
     <div class="header">
         <div class="container">
         </div>
@@ -18,17 +23,17 @@
     <div class="region top bar">
         <div class="region top left">
             <div id="clock" class="container">
-                tl
+
             </div>
         </div>
         <div class="region top center">
             <div class="container">
-                tc
+
             </div>
         </div>
         <div class="region top right">
             <div id="weather" class="container">
-                tr
+
                 <!--<iframe id="forecast_embed" type="text/html" frameborder="0" height="245"-->
                         <!--width="100%"-->
                         <!--src="https://forecast.io/embed/#lat=53.2835173&lon=-6.2213571&name=Kilmacud&units=uk">-->
@@ -40,10 +45,10 @@
     <div class="region upper third"><div class="container"></div></div>
         <div class="region middle center">
             <div class="container">
-                <button  id="login">Login</button>
+                <button hidden id="login">Login</button>
                 <button hidden id="logout" >Logout</button>
-                <button id="startRecording" >Start recording</button>
-                <button id="stopRecording" >Stop recording</button>
+                <button hidden id="startRecording" >Start recording</button>
+                <button hidden id="stopRecording" >Stop recording</button>
                 <button hidden id="stopAudio" >Stop audio</button>
                 <button hidden id="pauseAudio" >Pause audio</button>
                 <button hidden id="playAudio" >Play/Resume audio</button>
@@ -57,7 +62,7 @@
 
 
     <div class="region bottom bar">
-        <div class="region bottom left">
+        <div id="nest" class="region bottom left">
             <div class="container">
                 <!--<h1>NEWS</h1>
                 <script type="text/javascript" src="https://feed.mikle.com/js/fw-loader.js" data-fw-param="13547/"></script>-->
@@ -65,12 +70,13 @@
         </div>
         <div class="region bottom center">
             <div class="container">
-                bc
+
             </div>
         </div>
         <div class="region bottom right">
-            <div id="location" class="container">
-                br
+            <div id="recordingIcon" hidden class="container large">
+                <span class="xsmall bright">Listening...</span>
+                <i class="fa fa-circle animated pulse infinite" style="color:deepskyblue"></i>
             </div>
         </div>
     </div>

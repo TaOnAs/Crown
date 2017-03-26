@@ -51,7 +51,7 @@ if(this.openWeather)
             return 1;
         }
     }
-    setInterval(currentWeather, 1000);
+    setInterval(currentWeather, 5000);
 }
 else
 {
@@ -93,9 +93,9 @@ this._onVoiceStop = function(){
 }
 
 models.add({
-    file: 'resources/alexa.umdl',
-    sensitivity: '1',
-    hotwords : 'mirror'
+    file: 'resources/mirror.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'alexa'
 });
 
 const detector = new Detector({
@@ -105,14 +105,16 @@ const detector = new Detector({
 });
 
 detector.on('silence', function () {
+
     if(self.listening)
     {
         self.timeout = setTimeout(function(){
-            // console.log("timeout");
             self._onVoiceStop();
+            //console.log("timeout");
+
         }, 3000);
     }
-    // console.log('silence');
+     // console.log('silence');
 });
 
 detector.on('sound', function () {
@@ -120,7 +122,7 @@ detector.on('sound', function () {
     {
         self._clearTimeout();
     }
-    // console.log('sound');
+     // console.log('sound');
 });
 
 detector.on('error', function () {
@@ -130,6 +132,8 @@ detector.on('error', function () {
 detector.on('hotword', function (index, hotword) {
     console.log('hotword', index, hotword);
     self.listening = true;
+
+
     io.emit('alexa', { message: "alexa"});
 
 });
@@ -170,24 +174,73 @@ hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
 // hue.light(1).off();
 
 
-hue.getLights()
-    .then(function(lights){
-        // console.log(lights);
-        console.log(Object.keys(lights) + " lights found!");
-    })
-    .catch(function(err){
-        console.error(err.stack || err);
+const hueStatus = function() {
+    try{
+        hue.getLights()
+            .then(function(lights){
+                // console.log(lights);
+
+                io.emit('hue', { data: lights});
+
+                // for( x in lights)
+                // {
+                //     console.log(lights[x].state.on);
+                // }
+
+            })
+            .catch(function(err){
+                console.error(err.stack || err);
+            });
+    }
+    catch(err) {
+        console.log(err.message);
+        return 1;
+    }
+}
+setInterval(hueStatus, 30000);
+
+
+const nestStatus = function() {
+    nestApi.login(function(data) {
+
+        nestApi.get(function (data) {
+            console.log(data);
+            var shared = data.shared[Object.keys(data.schedule)[0]];
+            // console.log(data.shared);
+            io.emit('nest', {data: shared});
+
+            console.log('Currently ' + shared.current_temperature + ' degrees celcius');
+            console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+        });
+    });
+}
+
+//NEST
+var NestApi = require('nest-api');
+var nestApi = new NestApi('soh002@gmail.com', '$1xB6fNU');
+
+nestApi.login(function(data) {
+    console.log("logged in");
+    // console.log(data);
+    nestApi.get(function (data) {
+        console.log(data);
+        var shared = data.shared[Object.keys(data.schedule)[0]];
+        // console.log(data.shared);
+        io.emit('nest', {data: shared});
+
+        console.log('Currently ' + shared.current_temperature + ' degrees celcius');
+        console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+        setInterval(nestStatus, 30000);
+
     });
 
-
-
-
-
-
-
-
-
-
+    // nestApi.get(function(data) {
+    //     var shared = data.shared[Object.keys(data.schedule)[0]];
+    //     // console.log(data.shared);
+    //     console.log('Currently ' + shared.current_temperature + ' degrees celcius');
+    //     console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+    // });
+});
 
 
 
@@ -226,12 +279,12 @@ app.get('/parse-m3u', (req, res) => {
 
 
 // Emit welcome message on connection
-io.on('connection', function(socket) {
-    // Use socket to communicate with this particular client only, sending it it's own id
-    socket.emit('welcome', { message: 'Welcome!', id: socket.id });
-
-    socket.on('i am client', console.log);
-});
+// io.on('connection', function(socket) {
+//     // Use socket to communicate with this particular client only, sending it it's own id
+//     socket.emit('welcome', { message: 'Welcome!', id: socket.id });
+//
+//     socket.on('i am client', console.log);
+// });
 
 
 

@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "electron-rebuild": "^1.5.7",
+    "nest-api": "0.0.7",
     "node-accuweather": "^1.7.0",
     "node-record-lpcm16": "^0.2.0",
     "philips-hue": "^1.2.0",

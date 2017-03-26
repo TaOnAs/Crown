@@ -3,15 +3,22 @@ body{
     width: calc(100% - 100px);
     height: calc(100% - 100px);
     color: #ffffff;
-
+    font-family: "Helvetica Neue";
+    overflow:hidden;
 }
-
 
 
 h1{
     color:white;
 }
 
+.nestHeating{
+    color: #ff4e20;
+}
+
+.verticalAlign{
+
+}
 
 .dimmed {
     color: #666;
@@ -79,19 +86,23 @@ h1{
 
 .region{
     position: absolute;
+
 }
 
 .region.right{
     right:0;
+    margin-right:20px;
+
     text-align:right;
 }
 
 .region.top{
+    margin-top:20px;
     top:0;
 }
 
 .region.top .container{
-    margin-bottom:20px;
+    /*margin-bottom:20px;*/
 }
 
 .region.top.center,
@@ -110,6 +121,14 @@ h1{
 .region.bottom.center,
 .region.bottom.right {
     bottom:100%;
+    width: 33.3%;
+}
+
+.region.bottom.right{
+}
+
+
+.region.bottom.left{
 }
 
 .region.bar{
@@ -141,6 +160,7 @@ h1{
 }
 
 .region.bottom{
+    margin-bottom: 20px;
     bottom:0;
 }
 
@@ -149,6 +169,7 @@ h1{
 }
 
 .region.left{
+    margin-left: 20px;
     text-align:left;
 }
 
