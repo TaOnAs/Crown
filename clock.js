@@ -4,12 +4,14 @@ function start_date_time(id)
     var wrapper = document.createElement("div");
     var dateWrapper = document.createElement("div");
     var timeWrapper = document.createElement("div");
+    var lineBreak = document.createElement("hr");
     dateWrapper.className = "normal medium";
     dateWrapper.id = "dateWrapper";
     timeWrapper.className = "bright large light";
     timeWrapper.id = "timeWrapper";
 
     wrapper.appendChild(dateWrapper);
+    wrapper.appendChild(lineBreak);
     wrapper.appendChild(timeWrapper);
     document.getElementById(id).appendChild(wrapper);
 
