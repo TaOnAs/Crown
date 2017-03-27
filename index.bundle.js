@@ -298,9 +298,9 @@ avs.getTokenFromUrl().then(function () {
 loginBtn.addEventListener('click', login);
 
 function login(event) {
-  return avs.login().then(function () {
-    return avs.requestMic();
-  }).catch(function () {});
+  // return avs.login().then(function () {
+  //   return avs.requestMic();
+  // }).catch(function () {});
 
 
   // If using client secret

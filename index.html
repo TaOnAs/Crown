@@ -5,7 +5,9 @@
     <title>smart_mirror</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" type="text/css" href="css/animate.css">
-    <link rel="stylesheet" type="text/css" href="font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/weather/weathercss/weather-icons.min.css">
+    <link rel="stylesheet" type="text/css" href="css/weather/weathercss/weather-icons-wind.min.css">
 
 
     <script type="text/javascript" src="clock.js"></script>
@@ -31,12 +33,12 @@
 
             </div>
         </div>
-        <div class="region top right">
-            <div id="weather" class="container">
+        <div id="weather" class="region top right">
+            <div class="container">
 
-                <!--<iframe id="forecast_embed" type="text/html" frameborder="0" height="245"-->
+                <!--<iframe id="forecast_embed" class="bright" type="text/html" frameborder="0" height="245"-->
                         <!--width="100%"-->
-                        <!--src="https://forecast.io/embed/#lat=53.2835173&lon=-6.2213571&name=Kilmacud&units=uk">-->
+                        <!--src="https://forecast.io/embed/#lat=53.2835173&lon=-6.2213571&name=Kilmacud&color=#ffffff&units=uk">-->
                 <!--</iframe>-->
             </div>
         </div>
@@ -68,7 +70,7 @@
                 <script type="text/javascript" src="https://feed.mikle.com/js/fw-loader.js" data-fw-param="13547/"></script>-->
             </div>
         </div>
-        <div class="region bottom center">
+        <div id="hue" class="region bottom center">
             <div class="container">
 
             </div>
@@ -76,24 +78,17 @@
         <div class="region bottom right">
             <div id="recordingIcon" hidden class="container large">
                 <span class="xsmall bright">Listening...</span>
-                <i class="fa fa-circle animated pulse infinite" style="color:deepskyblue"></i>
+                <i class="fa fa-circle animated pulse infinite" style="color: deepskyblue; text-shadow: 1px 1px 20px white;"></i>
             </div>
         </div>
     </div>
 
     <script src="index.bundle.js"></script>
     <!--<script>require('./weather.js')</script>&ndash;&gt;-->
-    <!--<script type="text/javascript" src="main.js"></script>-->
     <!--<script type="text/javascript" src="server.js"></script>-->
-    <!--<script type="text/javascript" src="weather.js"></script>-->
 
     <script type="text/javascript">window.onload = start_date_time('clock');</script>
     <script type="text/javascript">window.onload = date_time('dateWrapper','timeWrapper');</script>
-    <!--<script type="text/javascript">window.onload = start_weather();</script>-->
 
-
-
-    <!--<h1>Test!</h1>
-    <script>require('./index.js')</script>-->
 </body>
 </html>

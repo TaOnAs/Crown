@@ -1,4 +1,3 @@
-// const Weather = require(__dirname + '/weather.js');
 
 const https = require('https');
 const fs = require('fs');
@@ -28,9 +27,13 @@ const server = https.createServer(options, app);
 const io = require('socket.io')(server);
 
 
-//WEATHER
+//================================================================================
+// Weather
+// Open Weather
+// or
+// AccuWeather
+//================================================================================
 
-//OPEN WEATHER
 this.openWeather = true;
 
 if(this.openWeather)
@@ -43,7 +46,8 @@ if(this.openWeather)
     const currentWeather = function() {
         try{
             weather.now("DublinCity", function (err, aData) {
-                io.emit('weather', { message: aData.getDegreeTemp()});
+                io.emit('weather', { message: aData});
+                // io.emit('weather', { message: aData.getDegreeTemp()});
             });
         }
         catch(err) {
@@ -65,10 +69,11 @@ else
 
 
 
-//ACCUWEATHER
 
 
-//WAKE WORD
+//================================================================================
+// Wake Word and Voice Activity Detection
+//================================================================================
 const record = require('node-record-lpcm16');
 const Detector = require('./node_modules/snowboy').Detector;
 const Models = require('./node_modules/snowboy').Models;
@@ -76,7 +81,9 @@ const models = new Models();
 
 var self = this;
 this.listening = false;
+this.mirrorListening = false;
 this.timeout = null;
+this.mirrorTimeout =null;
 
 this._clearTimeout = function(){
     if(self.timeout){
@@ -93,9 +100,39 @@ this._onVoiceStop = function(){
 }
 
 models.add({
-    file: 'resources/mirror.pmdl',
+    file: 'resources/alexa.umdl',
     sensitivity: '0.5',
     hotwords : 'alexa'
+});
+models.add({
+    file: 'resources/mirror.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'mirror'
+});
+models.add({
+    file: 'resources/Wakeup.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'wake up'
+});
+models.add({
+    file: 'resources/turnonkitchenlight.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'kitchen light on'
+});
+models.add({
+    file: 'resources/turnoffkitchenlight.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'kitchen light off'
+});
+models.add({
+    file: 'resources/turnonlamp.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'lamp on'
+});
+models.add({
+    file: 'resources/turnofflamp.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'lamp off'
 });
 
 const detector = new Detector({
@@ -131,10 +168,32 @@ detector.on('error', function () {
 
 detector.on('hotword', function (index, hotword) {
     console.log('hotword', index, hotword);
-    self.listening = true;
+
+    if(hotword =="mirror")
+    {
+        self.mirrorListening = true;
+        self.mirrorTimeout = setTimeout(function(){
+            self.mirrorListening = false;
+
+        }, 3000);
+    }
+
+    if(self.mirrorListening) {
+
+        if (hotword == "lamp on") {
+            hue.light(1).on();
+        }
+        else if (hotword == "lamp off") {
+            hue.light(1).off();
+        }
+    }
 
 
-    io.emit('alexa', { message: "alexa"});
+    if(hotword == "alexa")
+    {
+        self.listening = true;
+        io.emit('alexa', { message: "alexa"});
+    }
 
 });
 
@@ -146,9 +205,10 @@ const mic = record.start({
 mic.pipe(detector);
 
 
-//Philips Hue
+//================================================================================
+// HUE
+//================================================================================
 var Hue = require('philips-hue');
-//var Hue = require('../');
 
 // var hue = new Hue;
 // hue.devicetype = 'my-hue-app';
@@ -171,7 +231,6 @@ var Hue = require('philips-hue');
 var hue = new Hue;
 hue.bridge = "192.168.1.105";
 hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
-// hue.light(1).off();
 
 
 const hueStatus = function() {
@@ -197,16 +256,19 @@ const hueStatus = function() {
         return 1;
     }
 }
-setInterval(hueStatus, 30000);
+setInterval(hueStatus, 10000);
+
+
+//================================================================================
+// Nest
+//================================================================================
 
 
 const nestStatus = function() {
     nestApi.login(function(data) {
-
         nestApi.get(function (data) {
-            console.log(data);
+            // console.log(data);
             var shared = data.shared[Object.keys(data.schedule)[0]];
-            // console.log(data.shared);
             io.emit('nest', {data: shared});
 
             console.log('Currently ' + shared.current_temperature + ' degrees celcius');
@@ -220,29 +282,19 @@ var NestApi = require('nest-api');
 var nestApi = new NestApi('soh002@gmail.com', '$1xB6fNU');
 
 nestApi.login(function(data) {
-    console.log("logged in");
-    // console.log(data);
+
     nestApi.get(function (data) {
-        console.log(data);
         var shared = data.shared[Object.keys(data.schedule)[0]];
-        // console.log(data.shared);
         io.emit('nest', {data: shared});
-
-        console.log('Currently ' + shared.current_temperature + ' degrees celcius');
-        console.log('Target is ' + shared.target_temperature + ' degrees celcius');
         setInterval(nestStatus, 30000);
-
     });
-
-    // nestApi.get(function(data) {
-    //     var shared = data.shared[Object.keys(data.schedule)[0]];
-    //     // console.log(data.shared);
-    //     console.log('Currently ' + shared.current_temperature + ' degrees celcius');
-    //     console.log('Target is ' + shared.target_temperature + ' degrees celcius');
-    // });
 });
 
 
+
+//================================================================================
+// Server
+//================================================================================
 
 app.use(bodyParser.urlencoded({ extended: true}))
 app.use(bodyParser.json());
