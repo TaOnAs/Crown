@@ -27,7 +27,7 @@ const server = https.createServer(options, app);
 const io = require('socket.io')(server);
 
 
- var sqlite3 = require('sqlite3');
+ // var sqlite3 = require('sqlite3');
 // var db = sqlite3.Database('mirror.db');
 //
 // db.run("select * from sensor").then(console.log);
