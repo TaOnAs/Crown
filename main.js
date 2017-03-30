@@ -2,14 +2,11 @@
  * Created by Mark on 15/02/2017.
  */
 const electron = require('electron');
-// const core = require(__dirname + "app.js");
 
 const Server = require(__dirname + "/server.js");
-// const Clock = require(__dirname + "/clock.js");
 
 const application = electron.app;
 const BrowserWindow = electron.BrowserWindow;
-
 
 let mainWindow;
 

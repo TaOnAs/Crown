@@ -27,47 +27,62 @@ const server = https.createServer(options, app);
 const io = require('socket.io')(server);
 
 
+ var sqlite3 = require('sqlite3');
+// var db = sqlite3.Database('mirror.db');
+//
+// db.run("select * from sensor").then(console.log);
+//
+//
+// // db.serialize(function() {
+// //
+// //     var stmt = db.prepare("INSERT INTO SENSOR VALUES ()");
+// //
+// //     stmt.finalize();
+// //
+// //     db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
+// //         console.log(row.id + ": " + row.info);
+// //     });
+// // });
+//
+// db.close();
+
 //================================================================================
 // Weather
 // Open Weather
-// or
-// AccuWeather
 //================================================================================
 
-this.openWeather = true;
+const weather = require("Openweather-Node");
+weather.setAPPID("fc95ca7a3fa739623373a2c2a9fe1198");
+weather.setCulture("ie");
+// weather.setForecastType("daily");
 
-if(this.openWeather)
-{
-    const weather = require("Openweather-Node");
-    weather.setAPPID("fc95ca7a3fa739623373a2c2a9fe1198");
-    weather.setCulture("ie");
-    weather.setForecastType("daily");
-
-    const currentWeather = function() {
-        try{
-            weather.now("DublinCity", function (err, aData) {
-                io.emit('weather', { message: aData});
-                // io.emit('weather', { message: aData.getDegreeTemp()});
-            });
-        }
-        catch(err) {
-            console.log(err.message);
-            return 1;
-        }
-    }
-    setInterval(currentWeather, 5000);
-}
-else
-{
-    const accuweather = require('node-accuweather')()("ANQd9hWkrIvl0DXh8Xl2fIGQvh5unJIF");
-
-    accuweather.getCurrentConditions("Dublin")
-        .then(function(result) {
-            console.log(result);
+const currentWeather = function() {
+    try{
+        weather.now("DublinCity", function (err, aData) {
+            io.emit('weather', { message: aData});
         });
+    }
+    catch(err) {
+        console.log(err.message);
+        return 1;
+    }
+    // WeatherForeCast();
 }
+setInterval(currentWeather, 5000)
 
+const WeatherForeCast = function(){
+    try{
+        weather.forecast("DublinCity", function (err, aData) {
+            console.log(aData);
 
+            //io.emit('weather', { message: aData});
+        });
+    }
+    catch(err) {
+        console.log(err.message);
+        return 1;
+    }
+}
 
 
 
@@ -97,8 +112,21 @@ this._onVoiceStop = function(){
         self._clearTimeout();
         io.emit('silence', { message: "silence"});
     }
+    else if(self.mirrorListening)
+    {
+        self.mirrorListening = false;
+        if(self.mirrorTimeout) {
+            clearTimeout(self.mirrorTimeout);
+        }
+        io.emit('silence', { message: "silence"});
+    }
 }
 
+models.add({
+    file: 'resources/mirrormirroronthewall.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'mirror mirror'
+});
 models.add({
     file: 'resources/alexa.umdl',
     sensitivity: '0.5',
@@ -106,6 +134,11 @@ models.add({
 });
 models.add({
     file: 'resources/mirror.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'mirror'
+});
+models.add({
+    file: 'resources/snowboy.umdl',
     sensitivity: '0.5',
     hotwords : 'mirror'
 });
@@ -134,6 +167,7 @@ models.add({
     sensitivity: '0.5',
     hotwords : 'lamp off'
 });
+
 
 const detector = new Detector({
     resource: "resources/common.res",
@@ -171,10 +205,11 @@ detector.on('hotword', function (index, hotword) {
 
     if(hotword =="mirror")
     {
+        io.emit('mirror', { message: "mirror"});
+
         self.mirrorListening = true;
         self.mirrorTimeout = setTimeout(function(){
-            self.mirrorListening = false;
-
+            self._onVoiceStop();
         }, 3000);
     }
 
@@ -182,12 +217,18 @@ detector.on('hotword', function (index, hotword) {
 
         if (hotword == "lamp on") {
             hue.light(1).on();
+            hueStatus();
         }
         else if (hotword == "lamp off") {
             hue.light(1).off();
+            hueStatus();
         }
     }
 
+    if(hotword == "stop")
+    {
+        io.emit('stop', {message: "stop"});
+    }
 
     if(hotword == "alexa")
     {
@@ -195,6 +236,10 @@ detector.on('hotword', function (index, hotword) {
         io.emit('alexa', { message: "alexa"});
     }
 
+    if(hotword == "mirror mirror")
+    {
+        io.emit('mirrormirror',{message: "mirrormirror"});
+    }
 });
 
 const mic = record.start({
@@ -210,9 +255,9 @@ mic.pipe(detector);
 //================================================================================
 var Hue = require('philips-hue');
 
-// var hue = new Hue;
-// hue.devicetype = 'my-hue-app';
-//
+var hue = new Hue;
+hue.devicetype = 'my-hue-app';
+
 // hue.getBridges()
 //     .then(function(bridges){
 //         console.log(bridges);
@@ -231,6 +276,7 @@ var Hue = require('philips-hue');
 var hue = new Hue;
 hue.bridge = "192.168.1.105";
 hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
+console.log(hue);
 
 
 const hueStatus = function() {
@@ -267,12 +313,12 @@ setInterval(hueStatus, 10000);
 const nestStatus = function() {
     nestApi.login(function(data) {
         nestApi.get(function (data) {
-            // console.log(data);
+             // console.log(data);
             var shared = data.shared[Object.keys(data.schedule)[0]];
             io.emit('nest', {data: shared});
 
-            console.log('Currently ' + shared.current_temperature + ' degrees celcius');
-            console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+            // console.log('Currently ' + shared.current_temperature + ' degrees celcius');
+            // console.log('Target is ' + shared.target_temperature + ' degrees celcius');
         });
     });
 }
@@ -285,10 +331,65 @@ nestApi.login(function(data) {
 
     nestApi.get(function (data) {
         var shared = data.shared[Object.keys(data.schedule)[0]];
-        io.emit('nest', {data: shared});
+        io.emit('nest', {data: data});
         setInterval(nestStatus, 30000);
     });
 });
+
+//================================================================================
+// TP-LINK KASA
+//================================================================================
+const Hs100Api = require('hs100-api');
+
+const client = new Hs100Api.Client();
+const plugs = [];
+var plugsInfo =[];
+const plugOne = client.getPlug({host: '192.168.1.100',port: '9999'});
+const plugTwo = client.getPlug({host: '192.168.1.101',port: '9999'});
+
+var info = plugOne.getInfo("123123",function (data) {
+    console.log(data);
+});
+
+// plugs.push(plugOne);
+// plugs.push(plugTwo);
+
+
+// const plugStatus = function () {
+//
+//     plugsInfo = [];
+//     // console.log(plugs);
+//
+//     for(plug in plugs) {
+//         // console.log("SETSETASDFA");
+//         // console.log(plugs[plug]);
+//
+//         // plugs[plug].getInfo().then(console.log);
+//
+//         // plugs[plug].setPowerState(true);
+//         // plugs[0].getInfo(function (data) {
+//         //     console.log(data);
+//         //     plugsInfo.push(data);
+//         // });
+//     }
+//     // console.log(plugsInfo);
+// }
+
+// setInterval(plugStatus, 10000);
+
+// console.log(plugs);
+// plugs[1].getInfo().then(console.log);
+// plug.getInfo().then(console.log);
+// //console.log(plug);
+// plug.setPowerState(false);
+
+// DISCOVERY Look for plugs, log to console, and turn them on
+// client.startDiscovery().on('plug-new', (plug) => {
+//     plug.getInfo().then(console.log);
+//     plugs.push(plug);
+//     plug.setPowerState(false);
+//     console.log(plugs);
+// });
 
 
 
@@ -327,19 +428,6 @@ app.get('/parse-m3u', (req, res) => {
         res.json(urls);
     });
 });
-
-
-
-// Emit welcome message on connection
-// io.on('connection', function(socket) {
-//     // Use socket to communicate with this particular client only, sending it it's own id
-//     socket.emit('welcome', { message: 'Welcome!', id: socket.id });
-//
-//     socket.on('i am client', console.log);
-// });
-
-
-
 
 
 server.listen(port, "0.0.0.0", function() {

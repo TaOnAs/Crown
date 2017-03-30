@@ -5,9 +5,9 @@ function start_date_time(id)
     var dateWrapper = document.createElement("div");
     var timeWrapper = document.createElement("div");
     var lineBreak = document.createElement("hr");
-    dateWrapper.className = "normal medium";
+    dateWrapper.className = "bright medium regular";
     dateWrapper.id = "dateWrapper";
-    timeWrapper.className = "bright large light";
+    timeWrapper.className = "bright large regular";
     timeWrapper.id = "timeWrapper";
 
     wrapper.appendChild(dateWrapper);

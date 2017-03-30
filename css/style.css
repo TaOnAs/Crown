@@ -7,6 +7,10 @@ body{
     overflow:hidden;
 }
 
+debug{
+    background-color: red;
+}
+
 
 h1{
     color:white;
@@ -14,6 +18,11 @@ h1{
 
 .nestHeating{
     color: #ff4e20;
+}
+
+.listening{
+    color:deepskyblue;
+    text-shadow: 1px 1px 20px white;
 }
 
 .verticalAlign{
@@ -91,7 +100,7 @@ h1{
 
 .region.right{
     right:0;
-    margin-right:20px;
+    margin-right:100px;
 
     text-align:right;
 }
@@ -169,7 +178,7 @@ h1{
 }
 
 .region.left{
-    margin-left: 20px;
+    margin-left: 100px;
     text-align:left;
 }
 

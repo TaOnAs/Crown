@@ -32,11 +32,11 @@ function hueStatus(lights) {
     var hueWrapper = null;
     var created = false;
     var lightClassOn = "fa fa-lightbulb-o medium bright animated pulse infinite";
-    var lightClassOff = "fa fa-lightbulb-o medium dimmed";
-    var lightClassUnreachable = "fa fa-times-circle xsmall dimmed";
+    var lightClassOff = "fa fa-lightbulb-o normal bright";
+    var lightClassUnreachable = "fa fa-times-circle medium normal";
 
-    var lightNameClassOn = "xsmall bright regular";
-    var lightNameClassOff = "xsmall dimmed regular";
+    var lightNameClassOn = "medium bright regular";
+    var lightNameClassOff = "medium normal regular";
 
     var currentLight;
 
@@ -102,23 +102,25 @@ function hueStatus(lights) {
 // NEST
 //================================================================================
 socket.on('nest', function(data) {
-
-    nestStatus(data);
+    nestStatus(data.data);
 
 });
 
 function nestStatus(data){
 
+    var shared = data.shared[Object.keys(data.schedule)[0]];
+    var device = data.device[Object.keys(data.schedule)[0]];
+
     var heatingClass = null;
     var heatingIcon = null;
-    if(data.data.current_temperature < data.data.target_temperature)
+    if(roundValue(shared.current_temperature,1) < roundValue(shared.target_temperature,1))
     {
-        heatingClass = "xsmall light nestHeating";
-        heatingIcon = "fa fa-thermometer-three-quarters animated pulse infinite xsmall nestHeating";
+        heatingClass = "medium regular nestHeating";
+        heatingIcon = "fa fa-thermometer-three-quarters animated pulse infinite medium nestHeating";
     }
     else
     {
-        heatingClass = "dimmed xsmall regular";
+        heatingClass = "bright medium regular";
         heatingIcon = "";
     }
 
@@ -129,18 +131,21 @@ function nestStatus(data){
         var nestCurrentTemp = document.getElementById("nestCurrentTemp");
         var nestTargetTemp = document.getElementById("nestTargetTemp");
         var nestIcon = document.getElementById("nestIcon");
+        var nestHumidity = document.getElementById("nestHumidity");
+
 
         nestCurrentTemp.className = heatingClass;
         nestIcon.className = heatingIcon;
 
-        nestCurrentTemp.innerHTML = "Nest Current : " + roundValue(data.data.current_temperature,1) + "&deg      ";
-        nestTargetTemp.innerHTML = "Target : " + roundValue(data.data.target_temperature,1) + "&deg";
+        nestCurrentTemp.innerHTML = "Current : " + roundValue(shared.current_temperature,1) + "&deg      ";
+        nestTargetTemp.innerHTML = " Target : " + roundValue(shared.target_temperature,1) + "&deg";
+        nestHumidity.innerHTML = "Humidity : " + device.current_humidity;
     }
     else
     {
         var nestWrapper = document.createElement("div");
         nestWrapper.id = "nestWrapper";
-        nestWrapper.className = "dimmed xsmall regular"
+        nestWrapper.className = "bright medium regular"
 
         var nestTitle = document.createElement("div");
         nestTitle.id = "nestTitle";
@@ -151,21 +156,26 @@ function nestStatus(data){
         nestIcon.className = heatingIcon;
 
 
-        var nestCurrentTemp = document.createElement("span");
-        var nestTargetTemp = document.createElement("span");
+        var nestCurrentTemp = document.createElement("div");
+        var nestTargetTemp = document.createElement("div");
         nestCurrentTemp.id = "nestCurrentTemp";
         nestCurrentTemp.className = heatingClass;
         nestTargetTemp.id = "nestTargetTemp";
 
-        nestCurrentTemp.innerHTML = "Current : " + roundValue(data.data.current_temperature,1) + "&deg ";
-        nestTargetTemp.innerHTML = "     Target : " + roundValue(data.data.target_temperature,1) + "&deg";
+        var nestHumidity = document.createElement("div");
+        nestHumidity.id = "nestHumidity";
+
+
 
         nestWrapper.appendChild(nestTitle);
         nestWrapper.appendChild(nestCurrentTemp);
         nestWrapper.appendChild(nestIcon);
         nestWrapper.appendChild(nestTargetTemp);
+        nestWrapper.appendChild(nestHumidity);
 
         document.getElementById("nest").appendChild(nestWrapper);
+
+        nestStatus(data);
     }
 }
 
@@ -175,6 +185,10 @@ function nestStatus(data){
 // Alexa Listening Icon
 //================================================================================
 socket.on('alexa', function(data) {
+    listening();
+});
+
+socket.on('mirror',function(data){
     listening();
 });
 
@@ -197,7 +211,7 @@ function notListening()
 
 
 socket.on('weather', function(data) {
-    console.log(data.message.values);
+    // console.log(data);
     weather(data.message.values);
 });
 
@@ -231,45 +245,36 @@ function weather(data){
     var sunsetMinute = checkTime(sunsetDate.getMinutes());;
     var sunsetTime = sunsetHour+":"+sunsetMinute;
 
-    console.log(sunriseTime);
-    console.log(sunsetTime);
-
-    console.log(temp);
-    console.log(humidity);
-    console.log(pressure);
-    console.log(windDegree);
-    console.log(windSpeed);
-
     var weatherDescription = data.weather[0].description;
     var weatherIconDescription = data.weather[0].icon;
-    console.log(weatherIconDescription);
 
     weatherIconDescription = getWeatherIcon(weatherIconDescription);
-    console.log(weatherIconDescription);
 
 
-
-    if(document.getElementById("temperature") === null)
+    if(document.getElementById("weatherWrapper") === null)
     {
         var wrapper = document.createElement("div");
-        wrapper.className = "large regular";
+        wrapper.id = "weatherWrapper";
+        wrapper.className = "large regular debug align-left";
 
         var sun = document.createElement("div");
         sun.id="sunContainer";
-        sun.className="normal small regular align-left";
+        sun.className="bright medium regular align-left";
 
         var sunriseSpan = document.createElement("span");
         sunriseSpan.id="sunriseSpan";
-        sunriseSpan.innerHTML = sunriseTime + " ";
+        //sunriseSpan.innerHTML = sunriseTime + " ";
 
         var sunriseIcon = document.createElement("i");
+        sunriseIcon.id = "sunriseIcon";
         sunriseIcon.className = "wi wi-sunrise";
 
         var sunsetSpan = document.createElement("span");
         sunsetSpan.id="sunsetSpan";
-        sunsetSpan.innerHTML = " " + sunsetTime + " ";
+        //sunsetSpan.innerHTML = " " + sunsetTime + " ";
 
         var sunsetIcon = document.createElement("i");
+        sunsetIcon.id = "sunsetIcon";
         sunsetIcon.className = "wi wi-sunset";
 
         sun.appendChild(sunriseSpan);
@@ -280,34 +285,50 @@ function weather(data){
         wrapper.appendChild(sun);
 
         var weatherIcon = document.createElement("i");
-        weatherIcon.className = "wi " + weatherIconDescription;
+        //weatherIcon.className = "wi " + weatherIconDescription;
+        weatherIcon.id = "weatherIcon";
         wrapper.appendChild(weatherIcon);
 
         var temperature = document.createElement("span");
         temperature.className = "bright";
         temperature.id = "temperature";
-        temperature.innerHTML = " " + temp + "&deg;";
+        //temperature.innerHTML = " " + temp + "&deg;";
         wrapper.appendChild(temperature);
 
         var wDescription = document.createElement("div");
-        wDescription.className = "small light dimmed align-left";
-        wDescription.id = "WeatherDescription";
-        wDescription.innerHTML = weatherDescription;
+        wDescription.className = "small light bright aligh-left";
+        wDescription.id = "weatherDescription";
+        //wDescription.innerHTML = weatherDescription;
 
         wrapper.appendChild(wDescription);
 
         var extraInfo = document.createElement("div");
         extraInfo.id = "extraInfo";
-        extraInfo.className="xsmall light dimmed align-left";
-        extraInfo.innerHTML = "Humidity: " + humidity + " Wind: " + windSpeed + " " + windDirection;
+        extraInfo.className="medium light bright align-left";
+        //extraInfo.innerHTML = "Humidity: " + humidity + " <br />Wind: " + windSpeed + " <br />Direction: " + windDirection;
         wrapper.appendChild(extraInfo);
 
         document.getElementById("weather").appendChild(wrapper);
+
+        weather(data);
     }
     else
     {
+        var wrapper = document.getElementById("weatherWrapper");
+        var sunriseSpan = document.getElementById("sunriseSpan");
+        var sunsetSpan = document.getElementById("sunsetSpan");
+        var weatherIcon = document.getElementById("weatherIcon");
         var temperature = document.getElementById("temperature");
+        var wDescription = document.getElementById("weatherDescription");
+        var extraInfo = document.getElementById("extraInfo");
+
+        sunriseSpan.innerHTML = sunriseTime + " ";
+        sunsetSpan.innerHTML = " " + sunsetTime + " ";
+        weatherIcon.className = "wi " + weatherIconDescription;
         temperature.innerHTML = " " + temp + "&deg;";
+        wDescription.innerHTML = weatherDescription;
+        extraInfo.innerHTML = "Humidity: " + humidity + " <br />Wind: " + windSpeed + " <br />Direction: " + windDirection;
+
     }
 
     return wrapper;
@@ -395,3 +416,7 @@ function getWindDirection(windDegree) {
 
 socket.on('error', console.error.bind(console));
 socket.on('message', console.log.bind(console));
+
+socket.on('mirrormirror', function(data){
+   document.body.className = "animated hinge";
+});

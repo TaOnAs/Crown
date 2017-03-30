@@ -11,8 +11,8 @@ var avs = new AVS({
     deviceId : 'my_device',
     deviceSerialNumber : 123123,
     redirectUri : 'https://localhost:9745/authresponse',
-    token : localStorage.getItem('avsToken'),
-    refreshToken : localStorage.getItem('avsRefreshToken')
+    token : localStorage.getItem('token'),
+    refreshToken : localStorage.getItem('refreshToken')
 });
 window.avs = avs;
 
@@ -23,23 +23,20 @@ this.timeout = null;
 
 var socket = io();
 
+    socket.on('stop', function(data){
+       avs.player.stop();
+    });
+
     socket.on('alexa', function(data) {
-        console.log(data.message);
         avs.startRecording();
-        // addMessage(data.message.temp);
     });
 
     socket.on('silence', function(data) {
-        console.log(data.message);
         avs.stopRecording().then(function (dataView) {
             avs.player.emptyQueue().then(function () {
                 return avs.audioToBlob(dataView);
             }).then(function (blob) {
                 return logAudioBlob(blob, 'VOICE');
-                //}).then(function () {
-                //return avs.player.enqueue(dataView);
-                //}).then(function () {
-                //return avs.player.play();
             }).catch(function (error) {
                 console.error(error);
             });
@@ -184,8 +181,11 @@ avs.on(AVS.EventTypes.LOGOUT, function () {
 });
 
 avs.on(AVS.EventTypes.TOKEN_INVALID, function () {
-  avs.logout().then(login);
-  console.log("TOKEN INVALID");
+    // avs.refreshToken();
+  avs.logout().then(avs.login());
+
+
+    console.log("TOKEN INVALID");
 });
 
 avs.on(AVS.EventTypes.LOG, log);
@@ -270,14 +270,14 @@ var replayAudio = document.getElementById('replayAudio');
 
 // If using client secret
 avs.getCodeFromUrl()
- .then(code => avs.getTokenFromCode(code))
-.then(token => localStorage.setItem('token', token))
-.then(refreshToken => localStorage.setItem('refreshToken', refreshToken))
-.then(() => avs.requestMic())
-.then(() => avs.refreshToken())
-.catch(() => {
+    .then(code => avs.getTokenFromCode(code))
+    .then(token => localStorage.setItem('token', token))
+    .then(refreshToken => localStorage.setItem('refreshToken', refreshToken))
+    .then(() => avs.requestMic())
+    .then(() => avs.refreshToken())
+    .catch(() => {
+    });
 
-});
 
 
 avs.getTokenFromUrl().then(function () {
