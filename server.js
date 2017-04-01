@@ -10,7 +10,6 @@ const options = {
     // SSL Certificate
     cert: fs.readFileSync('./ssl/server.crt'),
 
-    // Make sure an error is not emitted on connection when the server certificate verification against the list of supplied CAs fails.
     rejectUnauthorized: false
 };
 
@@ -27,24 +26,25 @@ const server = https.createServer(options, app);
 const io = require('socket.io')(server);
 
 
- // var sqlite3 = require('sqlite3');
-// var db = sqlite3.Database('mirror.db');
-//
-// db.run("select * from sensor").then(console.log);
-//
-//
-// // db.serialize(function() {
-// //
-// //     var stmt = db.prepare("INSERT INTO SENSOR VALUES ()");
-// //
-// //     stmt.finalize();
-// //
-// //     db.each("SELECT rowid AS id, info FROM lorem", function(err, row) {
-// //         console.log(row.id + ": " + row.info);
-// //     });
-// // });
-//
-// db.close();
+var sqlite3 = require('sqlite3');
+var db = new sqlite3.Database('./mirror.db');
+
+
+function insertToDb(temp, humidity, source){
+    db.serialize(function() {
+
+        db.run("CREATE TABLE if not exists sensor_info (temp, humidity, source, time)");
+        var stmt = db.prepare("INSERT INTO sensor_info VALUES (?, ?, ?, ?)");
+        stmt.run(temp,humidity,source, new Date());
+        stmt.finalize();
+
+        db.each("SELECT * FROM sensor_info", function(err, row) {
+            // console.log(row);
+        });
+    });
+}
+
+
 
 //================================================================================
 // Weather
@@ -69,21 +69,6 @@ const currentWeather = function() {
     // WeatherForeCast();
 }
 setInterval(currentWeather, 5000)
-
-const WeatherForeCast = function(){
-    try{
-        weather.forecast("DublinCity", function (err, aData) {
-            console.log(aData);
-
-            //io.emit('weather', { message: aData});
-        });
-    }
-    catch(err) {
-        console.log(err.message);
-        return 1;
-    }
-}
-
 
 
 //================================================================================
@@ -118,7 +103,7 @@ this._onVoiceStop = function(){
         if(self.mirrorTimeout) {
             clearTimeout(self.mirrorTimeout);
         }
-        io.emit('silence', { message: "silence"});
+        io.emit('mirrorsilence', { message: "silence"});
     }
 }
 
@@ -133,7 +118,7 @@ models.add({
     hotwords : 'alexa'
 });
 models.add({
-    file: 'resources/mirror.pmdl',
+    file: 'resources/crown.pmdl',
     sensitivity: '0.5',
     hotwords : 'mirror'
 });
@@ -168,6 +153,17 @@ models.add({
     hotwords : 'lamp off'
 });
 
+models.add({
+    file: 'resources/turnoffplug.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'plug off'
+});
+
+models.add({
+    file: 'resources/enableplug.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'plug on'
+});
 
 const detector = new Detector({
     resource: "resources/common.res",
@@ -223,6 +219,14 @@ detector.on('hotword', function (index, hotword) {
             hue.light(1).off();
             hueStatus();
         }
+        else if (hotword == "plug on") {
+            plugOne.setPowerState(true);
+            plugStatus(plugOne);
+        }
+        else if (hotword == "plug off") {
+            plugOne.setPowerState(false);
+            plugStatus(plugOne);
+        }
     }
 
     if(hotword == "stop")
@@ -276,7 +280,7 @@ hue.devicetype = 'my-hue-app';
 var hue = new Hue;
 hue.bridge = "192.168.1.105";
 hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
-console.log(hue);
+// console.log(hue);
 
 
 const hueStatus = function() {
@@ -286,12 +290,6 @@ const hueStatus = function() {
                 // console.log(lights);
 
                 io.emit('hue', { data: lights});
-
-                // for( x in lights)
-                // {
-                //     console.log(lights[x].state.on);
-                // }
-
             })
             .catch(function(err){
                 console.error(err.stack || err);
@@ -304,6 +302,39 @@ const hueStatus = function() {
 }
 setInterval(hueStatus, 10000);
 
+io.on('connection', function(socket){
+    socket.on('lightOn', function (data) {
+        console.log(data.data + " ON:");
+        console.log(hue.light(data.data));
+
+        hue.getLights()
+            .then(function(lights){
+                if(lights[data.data].state.on)
+                {
+                    hue.light(data.data).off();
+                    hueStatus();
+                }
+                else
+                {
+                    hue.light(data.data).on();
+                    hueStatus();
+                }
+            });
+
+        // if(hue.light(data.data).state)
+        // {
+        //     hue.light(data.data).off();
+        // }
+        // else
+        // {
+        //     hue.light(data.data).on();
+        // }
+
+    });
+
+});
+
+
 
 //================================================================================
 // Nest
@@ -311,16 +342,22 @@ setInterval(hueStatus, 10000);
 
 
 const nestStatus = function() {
-    nestApi.login(function(data) {
-        nestApi.get(function (data) {
-             // console.log(data);
-            var shared = data.shared[Object.keys(data.schedule)[0]];
-            io.emit('nest', {data: shared});
+    try{
+        nestApi.login(function(data) {
 
-            // console.log('Currently ' + shared.current_temperature + ' degrees celcius');
-            // console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+            nestApi.get(function (data) {
+                // console.log(data);
+                io.emit('nest', {data: data});
+
+                // console.log('Currently ' + shared.current_temperature + ' degrees celcius');
+                // console.log('Target is ' + shared.target_temperature + ' degrees celcius');
+            });
         });
-    });
+    }
+    catch (err){
+        console.log(err);
+    }
+
 }
 
 //NEST
@@ -329,12 +366,23 @@ var nestApi = new NestApi('soh002@gmail.com', '$1xB6fNU');
 
 nestApi.login(function(data) {
 
-    nestApi.get(function (data) {
-        var shared = data.shared[Object.keys(data.schedule)[0]];
-        io.emit('nest', {data: data});
-        setInterval(nestStatus, 30000);
-    });
+    try{
+        nestApi.get(function (data) {
+            io.emit('nest', {data: data});
+            var temp = data.shared[Object.keys(data.schedule)[0]].current_temperature;
+            var humidity = data.device[Object.keys(data.schedule)[0]].current_humidity;
+            insertToDb(temp, humidity, "Nest - Living Room");
+            setInterval(nestStatus, 30000);
+        });
+
+    }
+    catch (err){
+        console.log(err);
+    }
 });
+
+
+
 
 //================================================================================
 // TP-LINK KASA
@@ -355,7 +403,17 @@ var info = plugOne.getInfo("123123",function (data) {
 // plugs.push(plugTwo);
 
 
-// const plugStatus = function () {
+
+plugOne.getInfo().then(function(data){
+    console.log(data);
+});
+
+const plugStatus = function (plug) {
+
+    plug.getInfo().then(function(data){
+        io.emit("plugFound", {data: data});
+    });
+}
 //
 //     plugsInfo = [];
 //     // console.log(plugs);
@@ -384,12 +442,32 @@ var info = plugOne.getInfo("123123",function (data) {
 // plug.setPowerState(false);
 
 // DISCOVERY Look for plugs, log to console, and turn them on
-// client.startDiscovery().on('plug-new', (plug) => {
-//     plug.getInfo().then(console.log);
-//     plugs.push(plug);
-//     plug.setPowerState(false);
-//     console.log(plugs);
-// });
+client.startDiscovery().on('plug-new', (plug) => {
+    plug.getInfo().then(function(data){
+        io.emit("plugFound", {data: data});
+    });
+    plugs.push(plug);
+    plug.setPowerState(false);
+    // console.log(plugs);
+});
+
+// try{
+//     var SerialPort = require("serialport");
+//     var serialport = new SerialPort("/dev/cu.usbmodem1421", {
+//         baudRate: 9600
+//     });
+//     serialport.on('open', function(){
+//         console.log('Serial Port Opened');
+//         serialport.on('data', function(data){
+//             console.log(data);
+//         });
+//     });
+// }
+// catch (error)
+// {
+//     console.log(error);
+// }
+
 
 
 

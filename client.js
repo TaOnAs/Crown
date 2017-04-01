@@ -10,29 +10,16 @@ var socket = io();
 
 socket.on('hue', function(data) {
 
-
     var lights = data.data;
     hueStatus(lights);
-    console.log(lights);
-    for(x in lights)
-    {
-        if (lights[x].state.on)
-        {
-            console.log(lights[x].name + " on")
-        }
-        else
-            {
-            console.log(lights[x].name + " off")
-        }
-    }
 });
 
 function hueStatus(lights) {
-
+    console.log(lights);
     var hueWrapper = null;
     var created = false;
     var lightClassOn = "fa fa-lightbulb-o medium bright animated pulse infinite";
-    var lightClassOff = "fa fa-lightbulb-o normal bright";
+    var lightClassOff = "fa fa-lightbulb-o normal regular";
     var lightClassUnreachable = "fa fa-times-circle medium normal";
 
     var lightNameClassOn = "medium bright regular";
@@ -55,7 +42,7 @@ function hueStatus(lights) {
     {
         if(document.getElementById(lights[light].name+"wrapper"))
         {
-            var lightName = document.getElementById(lights[light].name);
+            var lightName = document.getElementById(light);
             var lightIcon = document.getElementById(lights[light].name + "Icon");
 
             if(lights[light].state.on)
@@ -81,8 +68,14 @@ function hueStatus(lights) {
             currentLight.id = lights[light].name+"wrapper";
 
             var lightName = document.createElement("span");
-            lightName.id = lights[light].name;
+            lightName.id = light;
             lightName.innerHTML = lights[light].name + "     ";
+
+            currentLight.addEventListener("click", function(x){
+                if(lights[x.target.id].state.reachable) {
+                    lightClick(x.target.id);
+                }
+            });
 
             var lightIcon = document.createElement("i");
             lightIcon.id = lights[light].name + "Icon";
@@ -97,6 +90,88 @@ function hueStatus(lights) {
         hueStatus(lights);
 
 }
+
+
+function lightClick(light) {
+    socket.emit("lightOn", {data: parseInt(light)});
+}
+
+
+//================================================================================
+// TP-Link
+//================================================================================
+
+socket.on('plugFound', function(data) {
+
+    plugStatus(data.data);
+
+});
+
+function plugStatus(data){
+
+    var alias = data.sysInfo.alias;
+    var icon = alias +"Icon";
+    var state = (data.sysInfo.relay_state === 1);
+
+
+    var plugClassOn = "fa fa-plug medium bright animated pulse infinite";
+    var plugClassOff = "fa fa-plug normal regular";
+
+    var plugNameClassOn = "medium bright regular";
+    var plugNameClassOff = "medium normal regular";
+
+
+    if(document.getElementById("kasaWrapper"))
+    {
+        var kasaWrapper = document.getElementById("kasaWrapper");
+
+        if(document.getElementById(alias+"wrapper"))
+        {
+            var plugName = document.getElementById(alias);
+            var plugIcon = document.getElementById(icon);
+
+            if(state)
+            {
+                plugIcon.className = plugClassOn;
+                plugName.className = plugNameClassOn;
+            }
+            else
+            {
+                plugIcon.className = plugClassOff;
+                plugName.className = plugNameClassOff;
+            }
+        }
+        else
+        {
+            var plug = document.createElement("div")
+            plug.id = alias+"wrapper";
+
+            var plugName = document.createElement("span");
+            plugName.innerHTML = alias + " ";
+            plugName.id = alias;
+
+            var plugIcon = document.createElement("i");
+            plugIcon.id = icon;
+
+            plug.appendChild(plugName);
+            plug.appendChild(plugIcon);
+            kasaWrapper.appendChild(plug);
+            plugStatus(data);
+        }
+    }
+    else
+    {
+        var kasaWrapper = document.createElement("div");
+        kasaWrapper.id = "kasaWrapper";
+        kasaWrapper.className = "bright medium regular align-left";
+
+        document.getElementById("hue").appendChild(kasaWrapper)
+        plugStatus(data);
+    }
+}
+
+
+
 
 //================================================================================
 // NEST
@@ -156,7 +231,7 @@ function nestStatus(data){
         nestIcon.className = heatingIcon;
 
 
-        var nestCurrentTemp = document.createElement("div");
+        var nestCurrentTemp = document.createElement("span");
         var nestTargetTemp = document.createElement("div");
         nestCurrentTemp.id = "nestCurrentTemp";
         nestCurrentTemp.className = heatingClass;
@@ -164,8 +239,6 @@ function nestStatus(data){
 
         var nestHumidity = document.createElement("div");
         nestHumidity.id = "nestHumidity";
-
-
 
         nestWrapper.appendChild(nestTitle);
         nestWrapper.appendChild(nestCurrentTemp);
@@ -182,7 +255,7 @@ function nestStatus(data){
 
 
 //================================================================================
-// Alexa Listening Icon
+// Alexa and Mirror Listening Icon
 //================================================================================
 socket.on('alexa', function(data) {
     listening();
@@ -193,6 +266,10 @@ socket.on('mirror',function(data){
 });
 
 socket.on('silence', function(data) {
+    notListening();
+});
+
+socket.on('mirrorsilence', function(data) {
     notListening();
 });
 
@@ -209,17 +286,14 @@ function notListening()
 }
 
 
-
+//================================================================================
+// Weather
+//================================================================================
 socket.on('weather', function(data) {
     // console.log(data);
     weather(data.message.values);
 });
 
-
-
-//================================================================================
-// Weather
-//================================================================================
 
 
 function weather(data){
@@ -419,4 +493,9 @@ socket.on('message', console.log.bind(console));
 
 socket.on('mirrormirror', function(data){
    document.body.className = "animated hinge";
+
+    setTimeout(function(){
+        document.body.className = "animated fadeIn";
+
+    }, 6000);
 });

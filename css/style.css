@@ -130,7 +130,6 @@ h1{
 .region.bottom.center,
 .region.bottom.right {
     bottom:100%;
-    width: 33.3%;
 }
 
 .region.bottom.right{
