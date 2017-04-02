@@ -26,6 +26,10 @@ const server = https.createServer(options, app);
 const io = require('socket.io')(server);
 
 
+//================================================================================
+// Database
+//================================================================================
+
 var sqlite3 = require('sqlite3');
 var db = new sqlite3.Database('./mirror.db');
 
@@ -302,36 +306,28 @@ const hueStatus = function() {
 }
 setInterval(hueStatus, 10000);
 
-io.on('connection', function(socket){
+io.on('connection', function(socket) {
+
     socket.on('lightOn', function (data) {
-        console.log(data.data + " ON:");
-        console.log(hue.light(data.data));
 
         hue.getLights()
-            .then(function(lights){
-                if(lights[data.data].state.on)
-                {
+            .then(function (lights) {
+                if (lights[data.data].state.on) {
                     hue.light(data.data).off();
                     hueStatus();
                 }
-                else
-                {
+                else {
                     hue.light(data.data).on();
                     hueStatus();
                 }
             });
-
-        // if(hue.light(data.data).state)
-        // {
-        //     hue.light(data.data).off();
-        // }
-        // else
-        // {
-        //     hue.light(data.data).on();
-        // }
-
     });
 
+
+    socket.on('plugOn', function (data) {
+        console.log(data.data);
+        togglePlug(data.data);
+    });
 });
 
 
@@ -391,66 +387,62 @@ const Hs100Api = require('hs100-api');
 
 const client = new Hs100Api.Client();
 const plugs = [];
-var plugsInfo =[];
-const plugOne = client.getPlug({host: '192.168.1.100',port: '9999'});
-const plugTwo = client.getPlug({host: '192.168.1.101',port: '9999'});
 
-var info = plugOne.getInfo("123123",function (data) {
-    console.log(data);
-});
+const plugStatus = function () {
 
-// plugs.push(plugOne);
-// plugs.push(plugTwo);
-
-
-
-plugOne.getInfo().then(function(data){
-    console.log(data);
-});
-
-const plugStatus = function (plug) {
-
-    plug.getInfo().then(function(data){
-        io.emit("plugFound", {data: data});
-    });
+    for(plug in plugs)
+    {
+        plugs[plug].getInfo().then(function(data){
+            io.emit("plugFound", {data: data});
+        });
+    }
 }
-//
-//     plugsInfo = [];
-//     // console.log(plugs);
-//
-//     for(plug in plugs) {
-//         // console.log("SETSETASDFA");
-//         // console.log(plugs[plug]);
-//
-//         // plugs[plug].getInfo().then(console.log);
-//
-//         // plugs[plug].setPowerState(true);
-//         // plugs[0].getInfo(function (data) {
-//         //     console.log(data);
-//         //     plugsInfo.push(data);
-//         // });
-//     }
-//     // console.log(plugsInfo);
-// }
 
-// setInterval(plugStatus, 10000);
+const togglePlug = function(plugName){
+    for(plug in plugs){
+        var alias = plugs[plug].sysInfo.alias;
+        var state = (plugs[plug].sysInfo.relay_state === 1);
 
-// console.log(plugs);
-// plugs[1].getInfo().then(console.log);
-// plug.getInfo().then(console.log);
-// //console.log(plug);
-// plug.setPowerState(false);
+        console.log(state);
+        console.log(alias);
 
-// DISCOVERY Look for plugs, log to console, and turn them on
+        if(alias == plugName)
+        {
+            if(state)
+            {
+                plugs[plug].setPowerState(false);
+                plugs[plug].sysInfo.relay_state = 0;
+                plugStatus();
+            }
+            else
+            {
+                plugs[plug].sysInfo.relay_state = 0;
+                plugs[plug].setPowerState(true);
+                plugStatus();
+            }
+        }
+    }
+}
+
+var plugStatusStarted = false;
+
 client.startDiscovery().on('plug-new', (plug) => {
     plug.getInfo().then(function(data){
         io.emit("plugFound", {data: data});
     });
     plugs.push(plug);
-    plug.setPowerState(false);
-    // console.log(plugs);
+
+    if (!plugStatusStarted)
+    {
+        plugStatusStarted = true;
+        setInterval(plugStatus, 10000);
+    }
 });
 
+
+//================================================================================
+// Serial Port DHT22 SENSOR
+//================================================================================
 // try{
 //     var SerialPort = require("serialport");
 //     var serialport = new SerialPort("/dev/cu.usbmodem1421", {

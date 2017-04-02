@@ -42,9 +42,11 @@
         </div>
     </div>
 
-    <div class="region upper third"><div class="container"></div></div>
+    <div class="region upper third"><div class="container"></div><span id="upperInfo"></span></div>
         <div class="region middle center">
             <div class="container">
+                <span id="middleInfo"></span>
+
                 <button hidden id="login">Login</button>
                 <button hidden id="logout" >Logout</button>
                 <button hidden id="startRecording" >Start recording</button>
@@ -53,12 +55,11 @@
                 <button hidden id="pauseAudio" >Pause audio</button>
                 <button hidden id="playAudio" >Play/Resume audio</button>
                 <button hidden id="replayAudio" >Replay audio</button>
-
                 <ul hidden id="log"></ul>
                 <ul hidden id="audioLog"></ul>
             </div>
         </div>
-    <div class="region lower third"><div class="container"></div></div>
+    <div class="region lower third"><div class="container"><span id="lowerInfo"></span></div></div>
 
 
     <div class="region bottom bar">
@@ -84,7 +85,7 @@
         </div>
     </div>
 
-    <script src="index.bundle.js"></script>
+    <script src="alexa.js"></script>
     <!--<script>require('./weather.js')</script>&ndash;&gt;-->
     <!--<script type="text/javascript" src="server.js"></script>-->
 

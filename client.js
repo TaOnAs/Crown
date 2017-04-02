@@ -75,6 +75,15 @@ function hueStatus(lights) {
                 if(lights[x.target.id].state.reachable) {
                     lightClick(x.target.id);
                 }
+                else
+                {
+                    var textSpan = document.getElementById("middleInfo");
+                    textSpan.className = infoClassNameIn;
+                    textSpan.innerHTML = lights[x.target.id].name + " Hue Light is unreachable";
+                    setTimeout(function(){
+                        textSpan.className = infoClassNameOut;
+                    }, 3000);
+                }
             });
 
             var lightIcon = document.createElement("i");
@@ -104,6 +113,11 @@ function lightClick(light) {
 socket.on('plugFound', function(data) {
 
     plugStatus(data.data);
+
+});
+
+socket.on('PLUGTEST', function(data) {
+    console.log(data.data);
 
 });
 
@@ -153,6 +167,10 @@ function plugStatus(data){
             var plugIcon = document.createElement("i");
             plugIcon.id = icon;
 
+            plug.addEventListener("click", function(x){
+                plugClick(alias);
+            });
+
             plug.appendChild(plugName);
             plug.appendChild(plugIcon);
             kasaWrapper.appendChild(plug);
@@ -170,7 +188,9 @@ function plugStatus(data){
     }
 }
 
-
+function plugClick(plug) {
+    socket.emit("plugOn", {data: plug});
+}
 
 
 //================================================================================
@@ -490,6 +510,22 @@ function getWindDirection(windDegree) {
 
 socket.on('error', console.error.bind(console));
 socket.on('message', console.log.bind(console));
+
+
+var infoClassNameIn = "medium bright regular animated fadeIn";
+var infoClassNameOut = "animated fadeOut";
+
+
+socket.on('help', function(data){
+   var infoSpan = document.getElementById("middleInfo");
+   infoSpan.innerHTML = "";
+   infoSpan.className = infoClassNameIn;
+
+    setTimeout(function(){
+        infoSpan.className = infoClassNameOut;
+
+    }, 6000);
+});
 
 socket.on('mirrormirror', function(data){
    document.body.className = "animated hinge";

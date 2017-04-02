@@ -45,7 +45,6 @@ application.on("mainWindow-all-closed", function() {
 });
 
 application.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-    // Verification logic.
     event.preventDefault()
     callback(true)
 
@@ -55,10 +54,3 @@ application.on('uncaughtException', function (error) {
     console.log(error);
 });
 
-// exports.openWindow = () => {
-//     let mainWindow = new BrowserWindow({width:400, height:200})
-//     mainWindow.loadURL('file://' + __dirname + '/bear.html')
-// }
-
-// core.start( function () {
-// });
