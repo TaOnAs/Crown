@@ -88,6 +88,10 @@ h1{
     text-align: right;
 }
 
+.align-center{
+    text-align: center;
+}
+
 .align-left {
     text-align: left;
 }
@@ -144,7 +148,7 @@ h1{
     text-align:center;
 }
 
-.region third,
+.region.third,
 .region.middle.center {
     width: 100%;
     text-align: center;

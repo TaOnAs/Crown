@@ -512,18 +512,28 @@ socket.on('error', console.error.bind(console));
 socket.on('message', console.log.bind(console));
 
 
-var infoClassNameIn = "medium bright regular animated fadeIn";
+var infoClassNameIn = "small bright regular animated fadeIn align-center";
 var infoClassNameOut = "animated fadeOut";
 
 
 socket.on('help', function(data){
-   var infoSpan = document.getElementById("middleInfo");
-   infoSpan.innerHTML = "";
-   infoSpan.className = infoClassNameIn;
+   var upper = document.getElementById("upperInfo");
+   upper.innerHTML = "Try saying the keyword toggle followed by a device name";
+   upper.className = infoClassNameIn;
+
+   var middle = document.getElementById("middleInfo");
+   middle.innerHTML = "For Example say Crown, Toggle Lamp";
+   middle.className = infoClassNameIn;
+
+   var lower = document.getElementById("lowerInfo");
+   lower.innerHTML = "You can also talk to Alexa try saying Alexa what can I say";
+   lower.className = infoClassNameIn;
+
 
     setTimeout(function(){
-        infoSpan.className = infoClassNameOut;
-
+        upper.className = infoClassNameOut;
+        middle.className = infoClassNameOut;
+        lower.className = infoClassNameOut;
     }, 6000);
 });
 

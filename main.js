@@ -44,6 +44,7 @@ application.on("mainWindow-all-closed", function() {
     createWindow();
 });
 
+
 application.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
     event.preventDefault()
     callback(true)
@@ -54,3 +55,4 @@ application.on('uncaughtException', function (error) {
     console.log(error);
 });
 
+module.exports = application;

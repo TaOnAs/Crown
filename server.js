@@ -127,36 +127,20 @@ models.add({
     hotwords : 'mirror'
 });
 models.add({
-    file: 'resources/snowboy.umdl',
-    sensitivity: '0.5',
-    hotwords : 'mirror'
-});
-models.add({
     file: 'resources/Wakeup.pmdl',
     sensitivity: '0.5',
     hotwords : 'wake up'
 });
-models.add({
-    file: 'resources/turnonkitchenlight.pmdl',
-    sensitivity: '0.5',
-    hotwords : 'kitchen light on'
-});
-models.add({
-    file: 'resources/turnoffkitchenlight.pmdl',
-    sensitivity: '0.5',
-    hotwords : 'kitchen light off'
-});
-models.add({
-    file: 'resources/turnonlamp.pmdl',
-    sensitivity: '0.5',
-    hotwords : 'lamp on'
-});
-models.add({
-    file: 'resources/turnofflamp.pmdl',
-    sensitivity: '0.5',
-    hotwords : 'lamp off'
-});
-
+// models.add({
+//     file: 'resources/turnonlamp.pmdl',
+//     sensitivity: '0.5',
+//     hotwords : 'lamp on'
+// });
+// models.add({
+//     file: 'resources/turnofflamp.pmdl',
+//     sensitivity: '0.5',
+//     hotwords : 'lamp off'
+// });
 models.add({
     file: 'resources/turnoffplug.pmdl',
     sensitivity: '0.5',
@@ -167,6 +151,30 @@ models.add({
     file: 'resources/enableplug.pmdl',
     sensitivity: '0.5',
     hotwords : 'plug on'
+});
+models.add({
+    file: 'resources/togglelamp.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'Lamp'
+});
+models.add({
+    file: 'resources/togglelivingroom.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'Living Room'
+});
+models.add({
+    file: 'resources/toggleplug.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'Plug'
+});models.add({
+    file: 'resources/togglekettle.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'Kettle'
+});
+models.add({
+    file: 'resources/Help.pmdl',
+    sensitivity: '0.5',
+    hotwords : 'Help'
 });
 
 const detector = new Detector({
@@ -231,6 +239,28 @@ detector.on('hotword', function (index, hotword) {
             plugOne.setPowerState(false);
             plugStatus(plugOne);
         }
+        else if (hotword == "Lamp")
+        {
+            toggleLight(hotword);
+            hueStatus();
+        }
+        else if (hotword == "Living Room")
+        {
+            toggleLight(hotword);
+            hueStatus();
+        }
+        else if (hotword == "Plug")
+        {
+            togglePlug(hotword);
+        }
+        else if (hotword == "Kettle")
+        {
+            togglePlug(hotword);
+        }
+        else if (hotword =="Help")
+        {
+            io.emit("help");
+        }
     }
 
     if(hotword == "stop")
@@ -284,15 +314,13 @@ hue.devicetype = 'my-hue-app';
 var hue = new Hue;
 hue.bridge = "192.168.1.105";
 hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
-// console.log(hue);
-
+// hue.bridge = "192.168.1.100";
+// hue.username = "oDK2bk8zUVFmLAWMjNVo6nHgzmVbus5WKqnA-xVk";
 
 const hueStatus = function() {
     try{
         hue.getLights()
             .then(function(lights){
-                // console.log(lights);
-
                 io.emit('hue', { data: lights});
             })
             .catch(function(err){
@@ -306,12 +334,42 @@ const hueStatus = function() {
 }
 setInterval(hueStatus, 10000);
 
+const toggleLight = function(target) {
+    try {
+        hue.getLights()
+            .then(function (lights) {
+
+                for (const x in lights) {
+                    if (lights[x].name == target) {
+                        if (lights[x].state.on) {
+                            hue.light(x).off();
+                            hueStatus();
+                        }
+                        else {
+                            hue.light(x).on();
+                            hueStatus();
+                        }
+                    }
+                }
+            })
+            .catch(function (err) {
+                console.error(err.stack || err);
+            });
+    }
+    catch (err) {
+        console.log(err.message);
+        return 1;
+    }
+}
+
+
 io.on('connection', function(socket) {
 
     socket.on('lightOn', function (data) {
 
         hue.getLights()
             .then(function (lights) {
+                console.log(data.data);
                 if (lights[data.data].state.on) {
                     hue.light(data.data).off();
                     hueStatus();
@@ -500,9 +558,9 @@ app.get('/parse-m3u', (req, res) => {
 });
 
 
+
 server.listen(port, "0.0.0.0", function() {
     console.log('server up and running at %s port', port);
 });
-
 
 module.exports = app;
