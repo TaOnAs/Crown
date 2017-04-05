@@ -172,7 +172,7 @@ models.add({
     hotwords : 'Kettle'
 });
 models.add({
-    file: 'resources/Help.pmdl',
+    file: 'resources/whatcanisay.pmdl',
     sensitivity: '0.5',
     hotwords : 'Help'
 });
@@ -296,24 +296,26 @@ var Hue = require('philips-hue');
 var hue = new Hue;
 hue.devicetype = 'my-hue-app';
 
-// hue.getBridges()
-//     .then(function(bridges){
-//         console.log(bridges);
-//         var bridge = bridges[0];
-//         console.log("bridge: "+bridge);
-//         return hue.auth(bridge);
-//     })
-//     .then(function(username){
-//         console.log("username: "+username);
-//         hue.light(1).on();
-//     })
-//     .catch(function(err){
-//         console.error(err.stack || err);
-//     });
+hue.getBridges()
+    .then(function(bridges){
+        console.log(bridges);
+        var bridge = bridges[0];
+        console.log("bridge: "+bridge);
+        hue.bridge = bridge;
+        return hue.auth(bridge);
+    })
+    .then(function(username){
+        console.log("username: "+username);
+        hue.username = username;
+        hue.light(1).on();
+    })
+    .catch(function(err){
+        console.error(err.stack || err);
+    });
 
-var hue = new Hue;
-hue.bridge = "192.168.1.105";
-hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
+// var hue = new Hue;
+// hue.bridge = "192.168.1.105";
+// hue.username = "0a3aLBQJGtbsjSmqYOFmFyEMcr350cY5c3ZIQVlr";
 // hue.bridge = "192.168.1.100";
 // hue.username = "oDK2bk8zUVFmLAWMjNVo6nHgzmVbus5WKqnA-xVk";
 
